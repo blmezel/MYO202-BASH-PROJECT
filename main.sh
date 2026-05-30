@@ -10,7 +10,7 @@
 
 # 2. Siber Güvenlikte Linux İşletim Sistemleri: https://www.btkakademi.gov.tr/portal/certificate/validate?certificateId=qKrhe9Yl6G
 
-# 3. Linux Bash Script Eğitimi: https://www.techcareer.net/certificates/validation/0e12cec3-1bc4-45a2-b80b-2476c1bfa5a2
+# 3. Linux Bash Script Eğitimi:  https://credsverse.com/credentials/0e12cec3-1bc4-45a2-b80b-2476c1bfa5a2
 
 
 
