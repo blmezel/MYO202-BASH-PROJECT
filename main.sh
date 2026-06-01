@@ -1,23 +1,15 @@
 #!/bin/bash
 
-# Ezel Balım Atik
-
+# EZEL BALIM ATİK
 # 2420191017
-
-# Sertifika Bağlantıları 
-
+# Sertifika Bağlantıları:
 # 1. Docker Temelleri: https://www.btkakademi.gov.tr/portal/certificate/validate?certificateId=4qgueDkGLI
-
 # 2. Siber Güvenlikte Linux İşletim Sistemleri: https://www.btkakademi.gov.tr/portal/certificate/validate?certificateId=qKrhe9Yl6G
+# 3. Linux Bash Script Eğitimi: https://credsverse.com/credentials/0e12cec3-1bc4-45a2-b80b-2476c1bfa5a2
 
-# 3. Linux Bash Script Eğitimi:  https://credsverse.com/credentials/0e12cec3-1bc4-45a2-b80b-2476c1bfa5a2
-
-
-
-# Rapor dosyasının adı
 LOG_FILE="report.log"
 
-# Script her çalıştığında eski raporu temizleyip yenisini başlatsın diye dosyayı boşaltıyoruz
+# Her çalıştığında eski raporu temizlesin
 > "$LOG_FILE"
 
 # 1. ISO 8601 formatında tarih ve saat yazdırılması
@@ -25,48 +17,37 @@ echo "=== PROJE BAŞLANGIÇ TARİHİ VE SAATİ ===" >> "$LOG_FILE"
 date --iso-8601=seconds >> "$LOG_FILE"
 echo "----------------------------------------" >> "$LOG_FILE"
 
-# 2. Bilgisayarın Donanım Bilgileri (Windows wmic ve getmac kullanımı)
 echo "=== BİLGİSAYAR DONANIM BİLGİLERİ ===" >> "$LOG_FILE"
 
+# 2. İşlemci - Marka Model Bilgisi
 echo "[İşlemci Bilgisi]" >> "$LOG_FILE"
-wmic cpu get Name /value | sed '/^$/d' >> "$LOG_FILE"
-echo "" >> "$LOG_FILE"
+wmic cpu get name >> "$LOG_FILE"
 
-echo "[RAM Bilgisi ve Kapasitesi]" >> "$LOG_FILE"
-wmic memorychip get BankLabel, Capacity, Speed /value | sed '/^$/d' >> "$LOG_FILE"
-echo "" >> "$LOG_FILE"
+# 3. RAM - Üretici, Model, Parça Numarası, Seri No, Kapasite Bilgisi
+echo "[RAM Bilgisi]" >> "$LOG_FILE"
+wmic memorychip get manufacturer, model, partnumber, serialnumber, capacity >> "$LOG_FILE"
 
-echo "[Anakart Bilgisi ve UUID Değeri]" >> "$LOG_FILE"
-wmic baseboard get Product, Manufacturer /value | sed '/^$/d' >> "$LOG_FILE"
-wmic csproduct get UUID /value | sed '/^$/d' >> "$LOG_FILE"
-echo "" >> "$LOG_FILE"
+# 4. Anakart - Üretici, Model, Seri No ve UUID Bilgisi
+echo "[Anakart Bilgisi]" >> "$LOG_FILE"
+wmic baseboard get manufacturer, product, serialnumber >> "$LOG_FILE"
+wmic csproduct get uuid >> "$LOG_FILE"
 
-echo "[Disk Bilgisi (Marka, Model, Seri Numara ve Kapasite)]" >> "$LOG_FILE"
-wmic diskdrive get Model, Name, Size, SerialNumber /value | sed '/^$/d' >> "$LOG_FILE"
-echo "" >> "$LOG_FILE"
+# 5. Disk - Marka, Model, Seri No, Kapasite Bilgisi (UUID OLMADAN)
+echo "[Disk Bilgisi]" >> "$LOG_FILE"
+wmic diskdrive get manufacturer, model, serialnumber, size >> "$LOG_FILE"
 
+# 6. MAC Bilgisi
 echo "[MAC Adresi]" >> "$LOG_FILE"
-getmac /fo list | sed '/^$/d' >> "$LOG_FILE"
+getmac >> "$LOG_FILE"
 echo "----------------------------------------" >> "$LOG_FILE"
 
+# 7. HOCANIN ZORUNLU TUTTUĞU PAROLA (Sıfır Hata İçin Otomatik Tanımlandı)
+PAROLA="MYO+202"
 
+# 8. GPG ile AES256 şifreleme (Arka planda hocanın tam açabileceği standart formatta)
+echo "$PAROLA" | gpg --batch --yes --passphrase-fd 0 --cipher-algo AES256 -c "$LOG_FILE"
 
-# 3. Kullanıcıdan ekrana yazdırılmadan gizli bir kelime istenmesi
-echo "Rapor güvenli bir şekilde şifrelenecek."
-echo -n "Lütfen şifreleme için gizli kelimenizi (passphrase) girin: "
-read -s SECRET_PHRASE
-echo "" # Yeni satıra geçmek için
-
-# 4. GPG ile Simetrik Şifreleme ve report.log.gpg dosyasının oluşturulması
-# Kullanıcıdan alınan kelimeyi doğrudan gpg komutuna paslayarak etkileşimsiz şifreliyoruz
-echo "$SECRET_PHRASE" | gpg --batch --yes --passphrase-fd 0 --symmetric --cipher-algo AES256 "$LOG_FILE"
-
-# İşlem kontrolü
-if [ -f "${LOG_FILE}.gpg" ]; then
-    echo "Başarılı: '${LOG_FILE}.gpg' dosyası güvenli bir şekilde oluşturuldu!"
-else
-    echo "Hata: Şifreleme sırasında bir sorun oluştu!"
+# 9. Şifresiz orijinal raporun otomatik silinmesi
+if [ -f report.log.gpg ]; then
+    rm -f "$LOG_FILE"
 fi
-
-
-
